@@ -1,0 +1,113 @@
+# !kivy
+<MenuPrincipal>:
+    FloatLayout:
+        Button:
+            text: "SinglePlayer"
+            background_color: 0, 1, 1, 1
+            font_size: 40
+            pos_hint: {'x':.1, 'center_y':.5 } 
+            size_hint:0.4,0.1
+            on_press:
+                root.manager.current = 'MenuSinglePlayer'
+        
+        Button:
+            text: "MultiPlayer"
+            background_color: 0, 1, 1, 1
+            font_size: 40
+            pos_hint: {'x':.5, 'center_y':.5 } 
+            size_hint:0.4,0.1
+            disabled:True
+
+<MenuSinglePlayer>:
+    FloatLayout:
+        Button:
+            id: new_player_btn
+            text: "Cria Jogador"
+            background_color: 0, 1, 1, 1
+            font_size: 40   
+            pos_hint: {'center_x':.5, 'top':1 } 
+            size_hint:0.4,0.1
+            disabled: False
+            on_press:
+                app.new_player(nome_player.text)
+        
+        TextInput:
+            id:nome_player
+            multiline:False
+            hint_text: "Nome"
+            pos_hint: {'center_x':.5, 'center_y':0.8 } 
+            size_hint:0.3,0.1
+            disabled:False
+            opacity:1
+
+
+
+        Button:
+            text: "Volta"
+            background_color: 0, 1, 1, 1
+            font_size: 40
+            pos_hint: {'center_x':.5, 'botton':1 }  
+            size_hint:0.4,0.1 
+            on_press:
+                app.reseta()
+                root.manager.current = 'MenuPrincipal'
+        
+        Button:
+            id:jogar_btn
+            text: "Jogar"
+            background_color: 0, 1, 1, 1
+            font_size: 40
+            pos_hint: {'center_x':.5, 'center_y':0.2 }  
+            size_hint:0.4,0.1
+            disabled:True
+            opacity:0
+            on_press:
+                root.manager.current = 'JogoTelaPrincipal'
+
+        Label:
+            id: ultimo_jogador_criado
+            font_size: 40
+            pos_hint: {'center_x':.5, 'center_y':.4 }
+            
+
+        Label:
+            id: quantidade_jogadores
+            font_size: 40
+            pos_hint: {'center_x':.5, 'center_y':.6 }
+            
+
+<JogoTelaPrincipal>:
+    FloatLayout:
+        Label:
+            id: tt
+            font_size: 40
+            pos_hint: {'center_x':.5, 'center_y':.6 }
+            text: "teste" 
+
+        Button:
+            text: "Exit"
+            background_color: 0, 1, 1, 1
+            font_size: 40
+            pos_hint: {'center_x':.5, 'botton':1 }  
+            size_hint:0.4,0.1 
+            on_press:
+                app.reseta()
+                root.manager.current = 'MenuPrincipal'
+        
+        Button:
+            id: new_player_btn
+            text: "incia contador"
+            background_color: 0, 1, 1, 1
+            font_size: 40   
+            pos_hint: {'center_x':.5, 'top':1 } 
+            size_hint:0.4,0.1
+            disabled: False
+            on_press:
+                a = app.countdown.count()
+                if a == None: tt.text = "Fim"
+
+        CountDown:
+            id: pb
+            max:60
+            pos_hint: {'center_x':.5, 'top':1 } 
+            value: app.countdown.value
