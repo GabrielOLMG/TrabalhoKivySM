@@ -17,6 +17,7 @@
             pos_hint: {'x':.5, 'center_y':.5 } 
             size_hint:0.4,0.1
             disabled:True
+        
 
 <MenuSinglePlayer>:
     FloatLayout:
@@ -62,6 +63,7 @@
             disabled:True
             opacity:0
             on_press:
+                app.inicia_jogo()
                 root.manager.current = 'JogoTelaPrincipal'
 
         Label:
@@ -79,10 +81,12 @@
 <JogoTelaPrincipal>:
     FloatLayout:
         Label:
-            id: tt
-            font_size: 40
-            pos_hint: {'center_x':.5, 'center_y':.6 }
-            text: "teste" 
+            id: info_player
+            font_size: 20
+            # pos:-300,250
+            pos_hint: {'center_x':0.5, 'center_y':0.5 }
+            size_hint:0.1,0.1
+            #text: str(app.countdown.value)
 
         Button:
             text: "Exit"
@@ -95,19 +99,44 @@
                 root.manager.current = 'MenuPrincipal'
         
         Button:
-            id: new_player_btn
-            text: "incia contador"
+            id: Dado
+            text: "Dado"
+            background_color: 0, 1, 1, 1
+            font_size: 40
+            pos_hint: {'right':1, 'center_y':0.5 }  
+            size_hint:0.2,0.1 
+            disabled:True
+            opacity:0
+            on_press:
+                app.roda_dado() 
+
+        Button:
+            id: Inicia_Jogo
+            text: "Minigame"
+            background_color: 0, 1, 1, 1
+            font_size: 40
+            pos_hint: {'left':1, 'center_y':0.5 }  
+            size_hint:0.3,0.1 
+            disabled:False
+            opacity:1
+            on_press:
+
+        Button:
+            id: Turno
+            text: "Inicia Turno"
             background_color: 0, 1, 1, 1
             font_size: 40   
             pos_hint: {'center_x':.5, 'top':1 } 
             size_hint:0.4,0.1
             disabled: False
             on_press:
-                a = app.countdown.count()
-                if a == None: tt.text = "Fim"
+                app.inicia_round()
+                #app.countdown.count()
+        
+        #CountDown:
+            #id: pb
+            #max:60
+            #pos_hint: {'center_x':.5, 'top':1 } 
+            #value: app.countdown.value
 
-        CountDown:
-            id: pb
-            max:60
-            pos_hint: {'center_x':.5, 'top':1 } 
-            value: app.countdown.value
+
