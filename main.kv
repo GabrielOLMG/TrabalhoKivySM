@@ -1,6 +1,8 @@
 # !kivy
 <MenuPrincipal>:
     FloatLayout:
+        Image:
+            source: 'fotos\BOARD.png'
         Button:
             text: "SinglePlayer"
             background_color: 0, 1, 1, 1
@@ -80,46 +82,28 @@
 
 <JogoTelaPrincipal>:
     FloatLayout:
+        Image:
+            source: 'fotos\BOARD.png'
         Label:
             id: info_player
             font_size: 20
             # pos:-300,250
-            pos_hint: {'center_x':0.5, 'center_y':0.5 }
+            pos_hint: {'x':0.105, 'top':0.95 }
             size_hint:0.1,0.1
             #text: str(app.countdown.value)
-
-        Button:
-            text: "Exit"
-            background_color: 0, 1, 1, 1
-            font_size: 40
-            pos_hint: {'center_x':.5, 'botton':1 }  
-            size_hint:0.4,0.1 
-            on_press:
-                app.reseta()
-                root.manager.current = 'MenuPrincipal'
         
         Button:
             id: Dado
             text: "Dado"
-            background_color: 0, 1, 1, 1
+            
+            background:'fotos\BOARD.png'
             font_size: 40
             pos_hint: {'right':1, 'center_y':0.5 }  
             size_hint:0.2,0.1 
             disabled:True
             opacity:0
             on_press:
-                app.roda_dado() 
-
-        Button:
-            id: Inicia_Jogo
-            text: "Minigame"
-            background_color: 0, 1, 1, 1
-            font_size: 40
-            pos_hint: {'left':1, 'center_y':0.5 }  
-            size_hint:0.3,0.1 
-            disabled:False
-            opacity:1
-            on_press:
+                app.jogador_jogando()
 
         Button:
             id: Turno
@@ -131,7 +115,7 @@
             disabled: False
             on_press:
                 app.inicia_round()
-                #app.countdown.count()
+                Turno.text = "Proximo Turno"
         
         #CountDown:
             #id: pb
@@ -139,4 +123,39 @@
             #pos_hint: {'center_x':.5, 'top':1 } 
             #value: app.countdown.value
 
+<Popups_costa>:
+    Label:
+        text: "Tendo tirado X no dado com um\n Karma Y, mova para a casa Z.\n Vire a carta e veja o que te aguarda"
+        color: 1,0,1,1
+        size_hint: 0.6, 0.2
+        pos_hint: {"x":0.2, "top":0.9}
 
+    Button:
+        text: "Virar Carta"
+        size_hint: 0.4, 0.1
+        pos_hint: {"center_x":0.5, "center_y":0.3}
+        on_press:
+            app.jogador_jogando(True)
+  
+<Popups_frente>:
+    Label:
+        text: "Minigame/regra"
+        color: 1,0,1,1
+        size_hint: 0.6, 0.2
+        pos_hint: {"x":0.2, "top":0.9}
+
+    Button:
+        text: "Jogar Minigame"
+        size_hint: 0.4, 0.1
+        pos_hint: {"center_x":0.5, "center_y":0.3}
+        on_press:
+            app.jogador_jogando(True,True)
+
+
+
+<JogoTelaMinigame>:
+    FloatLayout:        
+        Label:
+            text: " TELA MINIGAMEZ"
+            size_hint: 0.6, 0.2
+            pos_hint: {"x":0.2, "top":0.9} 

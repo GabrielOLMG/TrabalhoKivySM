@@ -2,14 +2,12 @@ class Player:
     def __init__(self,nome):
         self.nome = nome
         self.karma = 0
-        self.posicao = 0
-        self.dado = None
-    
+        self.posicao = 0    
     def jogador_print(self):
         return f"Vez do Jogador {self.nome}\n"
 
     def info(self):
-        return self.jogador_print() + f"Karma = {self.karma}\nPosicao = {self.posicao}\nDado = {self.dado} "
+        return self.jogador_print() + f"Karma = {self.karma}\nPosicao = {self.posicao}"
     
     def controla_karma(self):
         if self.karma > 3:
