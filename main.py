@@ -2,42 +2,20 @@ from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
 from kivy.config import Config
-from kivy.clock import Clock
 from kivy.animation import Animation
 from kivy.properties import StringProperty, NumericProperty
-from kivy.uix.progressbar import ProgressBar
 from kivy.uix.popup import Popup
-from PIL import Image
 
 from Cartas_class import *
 from Jogo_class import *
 from Jogador import *
+from configuracao import *
 
-#Config.set('graphics', 'width', '700')
-#Config.set('graphics', 'height', '500')
-Config.set('graphics', 'resizable', False)
-###############################################
+#Config.set('graphics', 'resizable', False)
 
-class CountDown(ProgressBar):
-    e = []
-    def count(self):
-        if len(self.e) > 0: 
-            for i in self.e:
-                i.cancel()
+####################################################################################################
+####################################################################################################
 
-        self.value = 60
-        seconds = 60
-        def count_it(seconds):
-            if seconds == 0:
-                return None
-            seconds -= 1
-            self.value = seconds
-            self.e.append(Clock.schedule_once( lambda dt: count_it(seconds), 1))
-        self.e.append(Clock.schedule_once( lambda dt: count_it(60), 1))
-        print("fim")
-
-###############################################
-  
 class MenuPrincipal(Screen):
     pass
 
@@ -50,20 +28,21 @@ class JogoTelaPrincipal(Screen):
 class JogoTelaMinigame(Screen):
     pass  
 
+class JogoFinal(Screen):
+    pass  
+
 class Popups_costa(FloatLayout):
     pass
 
 class Popups_frente(FloatLayout):
     pass
-#################################################  
 
-
-##################################################
+####################################################################################################
+####################################################################################################
 
 class mainApp(App):  
     jogadores = []
     a = NumericProperty(60)
-    countdown = CountDown()
     ativoC = False
     ativoF = False
     
@@ -73,6 +52,10 @@ class mainApp(App):
         self.screen_manager.add_widget(MenuSinglePlayer(name = "MenuSinglePlayer"))
         self.screen_manager.add_widget(JogoTelaPrincipal(name = "JogoTelaPrincipal"))
         self.screen_manager.add_widget(JogoTelaMinigame(name = "JogoTelaMinigame"))
+        self.screen_manager.add_widget(JogoFinal(name = "JogoFinal"))
+        self.show_C = Popups_costa()
+        self.show_F = Popups_frente()
+
         return self.screen_manager
 
     def reseta(self):
@@ -112,14 +95,6 @@ class mainApp(App):
         self.posicao_vez = 0
         self.jogador_vez = self.jogadores[self.posicao_vez] 
 
-    def contador(self):
-        Animation.cancel_all(self)  # stop any current animations
-        self.anim = Animation(a=0, duration=self.a)
-        def finish_callback(animation, incr_crude_clock):
-            incr_crude_clock.text = "FINISHED"
-        self.anim.bind(on_complete=finish_callback)
-        self.anim.start(self)
-
     def inicia_jogo(self):
         self.atualiza_info()
         self.jogo = Jogo()
@@ -136,43 +111,150 @@ class mainApp(App):
     def roda_dado(self):
         self.dado = random.randint(1,6)
         self.jogador_vez.posicao += self.dado + self.jogador_vez.karma
-        self.status_posicao()
-        self.atualiza_info()
-        self.screen_manager.get_screen("JogoTelaPrincipal").ids.Dado.disabled = True
+        if self.jogador_vez.posicao >=CASA_MAXIMA_MINIMA:
+            self.lida_final_jogo(True) 
+            return True
+        elif -CASA_MAXIMA_MINIMA>self.jogador_vez.posicao:
+            self.lida_final_jogo(False) 
+            return True
+        else:
+            self.show_C.ids.carta_costa.text = f"Tendo tirado {self.dado} no dado com um\nKarma {self.jogador_vez.karma}, mova para a casa {self.jogador_vez.posicao}.\nVire a carta e veja o que te aguarda"
+            self.status_posicao()
+            self.atualiza_info()
+            self.screen_manager.get_screen("JogoTelaPrincipal").ids.Dado.disabled = True
+            return False
         
-
     def jogador_jogando(self,minigame = False,carta = False):
         if not minigame:
-            self.roda_dado() 
-            self.ativa_desativa_popup_costa()
+            if not self.roda_dado():
+                self.ativa_desativa_popup_costa()            
         elif minigame and not carta:
             self.ativa_desativa_popup_costa()
             self.ativa_desativa_popup_frente()
         else:
             self.ativa_desativa_popup_frente()
-            self.screen_manager.current = 'JogoTelaMinigame'
+            if self.efeito == None:
+                self.prepara_minigame()
+                self.screen_manager.current = 'JogoTelaMinigame'
+            else:
+                self.sai_minigame()
+
+    def prepara_minigame(self):
+        self.reseta_minigame()
+        if self.minigame == "Perguntas":
+            self.valores = self.jogo.Perguntas_Jogo()
+        elif self.minigame == "Lixo":
+            self.valores = self.jogo.Lixo_Jogo()
+            self.screen_manager.get_screen("JogoTelaMinigame").ids.r3.pos_hint = {'center_y':.3, 'center_x':0.5 }
+            self.screen_manager.get_screen("JogoTelaMinigame").ids.r4.opacity = 0
+            self.screen_manager.get_screen("JogoTelaMinigame").ids.r4.disabled = True
+        elif self.minigame == "Mimica":
+            self.valores = self.jogo.Mimica_Jogo()
+            
+            self.mimica()
+            
+            return
+
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.pergunta.text = self.valores[0]
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r1.text = self.valores[1]
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r2.text = self.valores[2]
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r3.text = self.valores[3]
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r4.text = self.valores[4]
+
+    def reseta_minigame(self):
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r1.disabled = False
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r1.opacity = 1
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r1.pos_hint = {'center_y':.5, 'center_x':0.25 } 
+        
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r2.disabled = False
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r2.opacity = 1
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r2.pos_hint = {'center_y':.5, 'right':1 } 
+
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r3.disabled = False
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r3.opacity = 1
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r3.pos_hint = {'center_y':.3, 'center_x':0.25  }
+
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r4.disabled = False
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r4.opacity = 1
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r4.pos_hint = {'center_y':.3, 'right':1 } 
+
+    def mimica(self):
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.pergunta.text = self.valores
+
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r1.disabled = False
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r1.opacity = 1
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r1.text = "Iniciar"
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r1.pos_hint = {'center_y':.5, 'center_x':.5 }
+        
+
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r2.disabled = True
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r2.opacity = 0
+
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r3.disabled = True
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r3.opacity = 0
+        
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r4.disabled = True
+        self.screen_manager.get_screen("JogoTelaMinigame").ids.r4.opacity = 0
 
 
-            # if carta 
+    def resposta_minigame(self,resposta,mimica_ativado= False, resposta_mimica = False):
+        print(self.minigame)
+        if self.minigame != "Mimica" or not mimica_ativado:
+            print("AQI")
+            if resposta == self.valores[-1]:
+                print("Acertou")
+                self.jogador_vez.karma+=1
+            else:
+                print("Errou")
+                self.jogador_vez.karma-=1
+        else:
+            if not resposta_mimica :
+                self.screen_manager.get_screen("JogoTelaMinigame").ids.r1.disabled = True
+                self.screen_manager.get_screen("JogoTelaMinigame").ids.r1.opacity = 0
+
+                self.screen_manager.get_screen("JogoTelaMinigame").ids.r2.disabled = False
+                self.screen_manager.get_screen("JogoTelaMinigame").ids.r2.text = "Meu Colega Acertou"
+                self.screen_manager.get_screen("JogoTelaMinigame").ids.r2.pos_hint = {'center_y':.3, 'center_x':0.5 }
+                self.screen_manager.get_screen("JogoTelaMinigame").ids.r2.opacity = 1
+
+                self.screen_manager.get_screen("JogoTelaMinigame").ids.r3.disabled = False
+                self.screen_manager.get_screen("JogoTelaMinigame").ids.r3.text = "Meu Colega Errou"
+                self.screen_manager.get_screen("JogoTelaMinigame").ids.r3.pos_hint = {'center_y':.5, 'center_x':0.5 }
+                self.screen_manager.get_screen("JogoTelaMinigame").ids.r3.opacity = 1
+                return
+            else:
+                if resposta == 2:
+                    print("Acertou")
+                    self.jogador_vez.karma+=1
+                else:
+                    print("Errou")
+                    self.jogador_vez.karma-=1
+        self.sai_minigame()            
 
     def status_posicao(self):
-        p = self.jogador_vez.posicao
-        
-        if p%2==0:
-            self.jogador_vez.karma += 1
-        elif p%3==0:
-            efeito =  self.carta.sorteia_carta()
-            self.carta.aplica_efeito_carta(self.jogador_vez,efeito)
-            print(efeito)
+        posicao = self.jogador_vez.posicao
+        if posicao in CASAS_ESPECIAIS:
+            self.efeito =  self.carta.sorteia_carta(self.jogador_vez.posicao//abs(self.jogador_vez.posicao))
+            self.minigame = None
+            regra = self.carta.aplica_efeito_carta(self.jogador_vez,self.efeito)
+            carta = "Casa Especial"
         else:
-            self.jogador_vez.karma -= 1
+            self.efeito = None
+            self.minigame = self.jogo.escolhe_jogo()
+            regra = self.jogo.regras(self.minigame)
+            carta = f"Casa Minigame- {regra[0]}"
+            regra = regra[1]
+
+
+        self.show_F.ids.tipo_carta.text = f"{carta}"
+        self.show_F.ids.regra_carta.text = f"{regra}"
         self.jogador_vez.controla_karma()
+        self.atualiza_info()
 
     def ativa_desativa_popup_costa(self):
         if not self.ativoC:
-            show = Popups_costa()
-            self.popupWindow_costa = Popup(title ="", content = show,size_hint =(None, None), size =(300, 500),separator_height = 0)
-            self.popupWindow_costa.background = "fotos\Carta Verso2.png"
+            self.popupWindow_costa = Popup(title ="", content = self.show_C,size_hint =(None, None), size =(300, 500),separator_height = 0)
+            self.popupWindow_costa.background = "fotos\Carta Verso.png"
             self.popupWindow_costa.open()
             self.ativoC = True
         else:
@@ -181,27 +263,41 @@ class mainApp(App):
 
     def ativa_desativa_popup_frente(self):
         if not self.ativoF:
-            show_F = Popups_frente()
-            self.popupWindow_frente = Popup(title ="", content = show_F, size_hint =(None, None),size =(300, 500),separator_height = 0)
+            self.popupWindow_frente = Popup(title ="", content = self.show_F, size_hint =(None, None),size =(300, 500),separator_height = 0)
             self.popupWindow_frente.background = "fotos\Carta Frente2.png"
             self.popupWindow_frente.open()
             self.ativoF = True
         else:
             self.popupWindow_frente.dismiss()
             self.screen_manager.current = "JogoTelaMinigame"
+            self.ativoF = False
 
+    def sai_minigame(self):
+        self.screen_manager.get_screen("JogoTelaPrincipal").ids.Dado.disabled = True
+        self.screen_manager.get_screen("JogoTelaPrincipal").ids.Dado.opacity = 0
+        self.screen_manager.get_screen("JogoTelaPrincipal").ids.Turno.disabled = False
+        self.screen_manager.current = 'JogoTelaPrincipal'
+        
+        self.posicao_vez = self.posicao_vez + 1 if (self.posicao_vez + 1) < len(self.jogadores) else 0
+        self.jogador_vez = self.jogadores[self.posicao_vez] 
+        self.jogador_vez.controla_karma()
+        self.atualiza_info()
+        self.show_C = Popups_costa()
+        self.show_F = Popups_frente()
+        
+    def lida_final_jogo(self,vitoria):
+        self.screen_manager.current = "JogoFinal"
+        if vitoria:
+            self.screen_manager.get_screen("JogoFinal").ids.fim.text = f"PARABENS, {self.jogador_vez.nome}. COM O SEU CONHECIMENTO, O MUNDO CONSEGUIU SER SALVO."
+        else:
+            self.screen_manager.get_screen("JogoFinal").ids.fim.text = f"INFELIZMENTE NÃO FOI DESTA VEZ, {self.jogador_vez.nome}.MAS NÃO DESISTA, AO POUCOS MUDE SUA ROTINA, \nPESQUISE MAIS FORMAS DE SALVAR O MUNDO E COM CERTEZA SERA VOCE \nA FAZER A DIFERENÇA DA PROXIMA VEZ ;)"
 
-##################################################
+####################################################################################################
+####################################################################################################
 
 if __name__ == "__main__":
     root = mainApp() 
     root.run() 
 
-
-'''
-MenuPrincipal:
-    - Botão: Jogo "Singleplayer"
-    - Botão: Jogo "multiplayer" (com servidor cliente)
-
-MenuSinglePlayer
-'''
+####################################################################################################
+####################################################################################################

@@ -20,7 +20,6 @@
             size_hint:0.4,0.1
             disabled:True
         
-
 <MenuSinglePlayer>:
     FloatLayout:
         Button:
@@ -77,8 +76,7 @@
         Label:
             id: quantidade_jogadores
             font_size: 40
-            pos_hint: {'center_x':.5, 'center_y':.6 }
-            
+            pos_hint: {'center_x':.5, 'center_y':.6 }            
 
 <JogoTelaPrincipal>:
     FloatLayout:
@@ -90,16 +88,13 @@
             # pos:-300,250
             pos_hint: {'x':0.105, 'top':0.95 }
             size_hint:0.1,0.1
-            #text: str(app.countdown.value)
         
         Button:
             id: Dado
-            text: "Dado"
-            
-            background:'fotos\BOARD.png'
-            font_size: 40
-            pos_hint: {'right':1, 'center_y':0.5 }  
-            size_hint:0.2,0.1 
+            background_normal:'fotos\dado.png'
+            #pos_hint: {'right':1, 'center_y':0.5 }  
+            pos_hint: {'center_x':0.5, 'center_y':0.5 }  
+            size_hint:0.25,0.25
             disabled:True
             opacity:0
             on_press:
@@ -116,46 +111,103 @@
             on_press:
                 app.inicia_round()
                 Turno.text = "Proximo Turno"
-        
-        #CountDown:
-            #id: pb
-            #max:60
-            #pos_hint: {'center_x':.5, 'top':1 } 
-            #value: app.countdown.value
 
 <Popups_costa>:
     Label:
-        text: "Tendo tirado X no dado com um\n Karma Y, mova para a casa Z.\n Vire a carta e veja o que te aguarda"
-        color: 1,0,1,1
+        id: carta_costa
+        color: 0,0,0,1
         size_hint: 0.6, 0.2
         pos_hint: {"x":0.2, "top":0.9}
 
     Button:
         text: "Virar Carta"
-        size_hint: 0.4, 0.1
+        size_hint: 0.6, 0.1
         pos_hint: {"center_x":0.5, "center_y":0.3}
         on_press:
             app.jogador_jogando(True)
   
 <Popups_frente>:
     Label:
-        text: "Minigame/regra"
-        color: 1,0,1,1
+        id: tipo_carta
+        color: 0,0,0,1
         size_hint: 0.6, 0.2
         pos_hint: {"x":0.2, "top":0.9}
 
+    Label:
+        id: regra_carta
+        color: 0,0,0,1
+        font_size: 14
+        size_hint: 0.6, 0.2
+        pos_hint: {"x":0.2, "center_y":0.5}
+
     Button:
-        text: "Jogar Minigame"
+        text: "Avançar"
         size_hint: 0.4, 0.1
         pos_hint: {"center_x":0.5, "center_y":0.3}
         on_press:
             app.jogador_jogando(True,True)
-
-
-
+            
 <JogoTelaMinigame>:
     FloatLayout:        
         Label:
-            text: " TELA MINIGAMEZ"
+            id: pergunta
+            text: "TELA MINIGAMEZ"
             size_hint: 0.6, 0.2
             pos_hint: {"x":0.2, "top":0.9} 
+        
+
+        
+        Button:
+            id: r1
+            text: "R1"
+            background_color: 0, 1, 1, 1
+            font_size: 15
+            pos_hint: {'center_y':.5, 'left':1 }  
+            size_hint:0.5,0.2 
+            on_press:
+                app.resposta_minigame(1,True,False)
+                
+        
+        Button:
+            id: r2
+            text: "R2"
+            background_color: 0, 1, 1, 1
+            font_size: 15
+            pos_hint: {'center_y':.5, 'right':1 }  
+            size_hint:0.5,0.2 
+            on_press:
+                app.resposta_minigame(2,True,True)
+        
+        Button:
+            id: r3
+            text: "R3"
+            background_color: 0, 1, 1, 1
+            font_size: 15
+            pos_hint: {'center_y':.3, 'left':1 }  
+            size_hint:0.5,0.2 
+            on_press:
+                app.resposta_minigame(3,True,True)
+        
+        Button:
+            id: r4
+            text: "R4"
+            background_color: 0, 1, 1, 1
+            font_size: 15
+            pos_hint: {'center_y':.3, 'right':1 }  
+            size_hint:0.5,0.2 
+            on_press:
+                app.resposta_minigame(4)
+
+<JogoFinal>
+    FloatLayout:        
+        Label:
+            id: fim
+            text: "FIM"
+            size_hint: 0.6, 0.2
+            pos_hint: {"center_x":0.5, "center_y":0.5} 
+        Button:
+            id: btnExit
+            text: "FIM"
+            pos_hint: {"center_x":0.5, "botton":1}
+            size_hint: 0.4, 0.1
+            on_press: app.stop() 
